@@ -40,6 +40,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         vm.load(this)
+        vm.observePrefs(this)
         setContent { KairoApp(vm) }
     }
 }
