@@ -9,20 +9,31 @@ import com.kairo.launcher.model.InstalledApp
 import com.kairo.launcher.util.AppsQuery
 import com.kairo.launcher.data.Prefs
 import com.kairo.launcher.data.dataStore
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import androidx.datastore.preferences.core.edit
 
-class LauncherViewModel: ViewModel() {
+class LauncherViewModel : ViewModel() {
+
+    // Apps + search
     private val _apps = MutableStateFlow<List<InstalledApp>>(emptyList())
     val apps: StateFlow<List<InstalledApp>> = _apps
 
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query
+
+    // Settings / favorites (backed by DataStore)
+    private val _favorites = MutableStateFlow<Set<String>>(emptySet())
+    val favorites: StateFlow<Set<String>> = _favorites
+
+    private val _gridSize = MutableStateFlow(84) // dp
+    val gridSize: StateFlow<Int> = _gridSize
+
+    private val _accentHex = MutableStateFlow("#7C5CFF")
+    val accentHex: StateFlow<String> = _accentHex
 
     fun load(context: Context) {
         viewModelScope.launch(Dispatchers.Default) {
@@ -34,7 +45,9 @@ class LauncherViewModel: ViewModel() {
 
     fun filtered(): List<InstalledApp> =
         if (query.value.isBlank()) apps.value
-        else apps.value.filter { it.label.contains(query.value, true) || it.packageName.contains(query.value, true) }
+        else apps.value.filter {
+            it.label.contains(query.value, true) || it.packageName.contains(query.value, true)
+        }
 
     fun launch(context: Context, app: InstalledApp) {
         val intent = Intent(Intent.ACTION_MAIN).apply {
@@ -44,45 +57,47 @@ class LauncherViewModel: ViewModel() {
         }
         context.startActivity(intent)
     }
-    
-    // Favorites (package names)
-    private val _favorites = MutableStateFlow<Set<String>>(emptySet())
-    val favorites: StateFlow<Set<String>> = _favorites
 
-    // Settings
-    private val _gridSize = MutableStateFlow(84)         // dp min cell
-    val gridSize: StateFlow<Int> = _gridSize
-    private val _accentHex = MutableStateFlow("#7C5CFF")
-    val accentHex: StateFlow<String> = _accentHex
-
+    /** Start observing DataStore-backed preferences. Call once (e.g., from Activity.onCreate). */
     fun observePrefs(ctx: Context) {
+        // Favorites
         viewModelScope.launch(Dispatchers.IO) {
-            ctx.dataStore.data.map { it[Prefs.FAVORITES] ?: emptySet() }.collect { _favorites.value = it }
+            ctx.dataStore.data.collectLatest { prefs ->
+                _favorites.value = prefs[Prefs.FAVORITES] ?: emptySet()
+            }
         }
+        // Grid size
         viewModelScope.launch(Dispatchers.IO) {
-            ctx.dataStore.data.map { it[Prefs.GRID_SIZE] ?: 84 }.collect { _gridSize.value = it }
+            ctx.dataStore.data.collectLatest { prefs ->
+                _gridSize.value = prefs[Prefs.GRID_SIZE] ?: 84
+            }
         }
+        // Accent
         viewModelScope.launch(Dispatchers.IO) {
-            ctx.dataStore.data.map { it[Prefs.ACCENT_HEX] ?: "#7C5CFF" }.collect { _accentHex.value = it }
+            ctx.dataStore.data.collectLatest { prefs ->
+                _accentHex.value = prefs[Prefs.ACCENT_HEX] ?: "#7C5CFF"
+            }
         }
     }
 
     fun toggleFavorite(ctx: Context, pkg: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            ctx.dataStore.updateData { prefs ->
+            ctx.dataStore.edit { prefs ->
                 val cur = prefs[Prefs.FAVORITES] ?: emptySet()
-                prefs.toMutablePreferences().apply {
-                    this[Prefs.FAVORITES] = if (pkg in cur) cur - pkg else cur + pkg
-                }
+                prefs[Prefs.FAVORITES] = if (pkg in cur) cur - pkg else cur + pkg
             }
         }
     }
 
-    fun setGridSize(ctx: Context, size: Int) = viewModelScope.launch(Dispatchers.IO) {
-        ctx.dataStore.updateData { it.toMutablePreferences().apply { this[Prefs.GRID_SIZE] = size } }
+    fun setGridSize(ctx: Context, size: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            ctx.dataStore.edit { it[Prefs.GRID_SIZE] = size.coerceIn(64, 120) }
+        }
     }
 
-    fun setAccent(ctx: Context, hex: String) = viewModelScope.launch(Dispatchers.IO) {
-        ctx.dataStore.updateData { it.toMutablePreferences().apply { this[Prefs.ACCENT_HEX] = hex } }
+    fun setAccent(ctx: Context, hex: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            ctx.dataStore.edit { it[Prefs.ACCENT_HEX] = hex }
+        }
     }
 }
