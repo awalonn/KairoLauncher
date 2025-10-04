@@ -1,7 +1,9 @@
+
 package com.kairo.launcher.ui.components
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -17,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import com.kairo.launcher.model.InstalledApp
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppGrid(
     apps: List<InstalledApp>,
