@@ -5,12 +5,14 @@ plugins {
 
 android {
     namespace = "com.kairo.launcher"
-    compileSdk = 31
+-   compileSdk = 31
++   compileSdk = 34
 
     defaultConfig {
         applicationId = "com.kairo.launcher"
         minSdk = 28
-        targetSdk = 31
+-       targetSdk = 31
++       targetSdk = 34
         versionCode = 1
         versionName = "0.1.0"
         vectorDrawables.useSupportLibrary = true
