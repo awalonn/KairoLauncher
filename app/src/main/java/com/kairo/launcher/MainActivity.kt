@@ -79,7 +79,12 @@ fun KairoApp(vm: LauncherViewModel) {
             }
         ) { paddings ->
             Box(Modifier.fillMaxSize().padding(paddings)) {
-                AppGrid(vm.filtered()) { vm.launch(ctx, it) }
+                AppGrid(
+                    apps = vm.filtered(),
+                    onOpen = { vm.launch(ctx, it) }
+                    gridMin = vm.gridSize.collectAsState().value,
+                    onLongPress = { vm.toggleFavorite(ctx, it.packageName) }
+                )
             }
         }
     }
