@@ -66,6 +66,11 @@ fun KairoApp(vm: LauncherViewModel) {
             }
         ) { paddings ->
             Box(Modifier.fillMaxSize().padding(paddings)) {  // ⬅️ use Scaffold paddings
+                val apps by vm.apps.collectAsState()
+                val favPkgs by vm.favorites.collectAsState()
+                val favApps = apps.filter { it.packageName in favPkgs }
+
+                FavoritesRow(favApps) { vm.launch(ctx, it) }
                 AppGrid(vm.filtered()) { vm.launch(ctx, it) }
             }
         }
