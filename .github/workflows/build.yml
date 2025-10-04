@@ -37,11 +37,36 @@ jobs:
           gradle --no-daemon --stacktrace assembleRelease assembleDebug
           echo "== OUTPUTS ==" && ls -R app/build/outputs || true
 
+      - name: Decode keystore
+        run: echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+
+      - name: Align & Sign release APK
+        run: |
+          UNSIGNED=app/build/outputs/apk/release/app-release-unsigned.apk
+          ALIGNED=app-release-aligned.apk
+          SIGNED=Kairo-Launcher-v0.1.0-release-signed.apk
+
+          "${ANDROID_HOME}/build-tools/34.0.0/zipalign" -f -p 4 "$UNSIGNED" "$ALIGNED"
+          "${ANDROID_HOME}/build-tools/34.0.0/apksigner" sign \
+            --ks release.keystore \
+            --ks-key-alias "$KEY_ALIAS" \
+            --ks-pass env:STORE_PASSWORD \
+            --key-pass env:KEY_PASSWORD \
+            --out "$SIGNED" \
+            "$ALIGNED"
+
+          "${ANDROID_HOME}/build-tools/34.0.0/apksigner" verify "$SIGNED"
+        env:
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
       - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
           name: Kairo-APK
           path: |
-            app/build/outputs/apk/release/*.apk
+            Kairo-Launcher-v0.1.0-release-signed.apk
             app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
