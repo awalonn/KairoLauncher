@@ -11,6 +11,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -25,6 +27,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import com.kairo.launcher.ui.components.AppGrid
 import com.kairo.launcher.ui.components.RadialDock
 import com.kairo.launcher.ui.components.SearchBar
@@ -43,24 +47,21 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun KairoApp(vm: LauncherViewModel) {
     KairoTheme {
-        val ctx = /* Local context for actions */
-            androidx.compose.ui.platform.LocalContext.current
+        val ctx = LocalContext.current
         val query by vm.query.collectAsState()
 
         Scaffold(
-            // Let Scaffold handle system bars insets; we'll use padding() it provides
             topBar = {
                 Column(
                     Modifier
                         .fillMaxWidth()
-                        .statusBarsPadding() // keep below clock/status icons
+                        .statusBarsPadding()
                 ) {
                     SearchBar(query) { vm.setQuery(it) }
                     DefaultHomeHint()
                 }
             },
             bottomBar = {
-                // Lift the dock above the nav bar
                 Box(Modifier.navigationBarsPadding()) {
                     RadialDock { slot ->
                         when (slot) {
@@ -70,13 +71,12 @@ fun KairoApp(vm: LauncherViewModel) {
                             3 -> ctx.startActivity(
                                 Intent(ctx, SettingsActivity::class.java)
                                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            )                          
+                            )
                         }
                     }
                 }
             }
         ) { paddings ->
-            // Apply Scaffold's paddings so content sits between bars
             Box(Modifier.fillMaxSize().padding(paddings)) {
                 AppGrid(vm.filtered()) { vm.launch(ctx, it) }
             }
@@ -86,16 +86,16 @@ fun KairoApp(vm: LauncherViewModel) {
 
 @Composable
 fun DefaultHomeHint() {
-    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val ctx = LocalContext.current
     if (!isDefaultHome(ctx)) {
         Surface(color = MaterialTheme.colorScheme.surfaceVariant) {
-            androidx.compose.foundation.layout.Row(
+            Row(
                 Modifier
                     .fillMaxWidth()
                     .padding(12.dp)
             ) {
                 Text("Set Kairo as your default Home for the full experience.")
-                androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
+                Spacer(Modifier.weight(1f))
                 TextButton(onClick = { requestHomeRole(ctx) }) { Text("Set Default") }
             }
         }
