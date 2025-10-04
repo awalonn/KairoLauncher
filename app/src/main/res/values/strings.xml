@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Kairo Launcher</string>
+    <string name="search_hint">Search apps…</string>
+    <string name="msg_set_default">Set Kairo as your default Home for the full experience.</string>
+</resources>
