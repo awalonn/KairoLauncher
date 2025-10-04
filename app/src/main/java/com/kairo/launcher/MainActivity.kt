@@ -8,7 +8,6 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -18,6 +17,12 @@ import com.kairo.launcher.ui.components.AppGrid
 import com.kairo.launcher.ui.components.RadialDock
 import com.kairo.launcher.ui.components.SearchBar
 import com.kairo.launcher.ui.theme.KairoTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 
 class MainActivity : ComponentActivity() {
     private val vm: LauncherViewModel by viewModels()
@@ -34,25 +39,35 @@ fun KairoApp(vm: LauncherViewModel) {
     KairoTheme {
         val ctx = LocalContext.current
         val query by vm.query.collectAsState()
+
         Scaffold(
+            contentWindowInsets = WindowInsets.systemBars,
             topBar = {
-                Column(Modifier.fillMaxWidth()) {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()      // ⬅️ keep below the status bar
+                ) {
                     SearchBar(query) { vm.setQuery(it) }
                     DefaultHomeHint()
                 }
             },
             bottomBar = {
-                RadialDock { slot ->
-                    when(slot) {
-                        0 -> { /* focus search */ }
-                        1 -> { /* app drawer is main view here */ }
-                        2 -> openRecents(ctx) // placeholder
-                        3 -> openSettings(ctx)
+                Box(Modifier.navigationBarsPadding()) { // ⬅️ sit above nav bar
+                    RadialDock { slot ->
+                        when (slot) {
+                            0 -> { /* focus search */ }
+                            1 -> { /* app grid is main */ }
+                            2 -> openRecents(ctx)
+                            3 -> openSettings(ctx)
+                        }
                     }
                 }
             }
         ) { paddings ->
-            AppGrid(vm.filtered()) { vm.launch(ctx, it) }
+            Box(Modifier.fillMaxSize().padding(paddings)) {  // ⬅️ use Scaffold paddings
+                AppGrid(vm.filtered()) { vm.launch(ctx, it) }
+            }
         }
     }
 }
@@ -72,10 +87,14 @@ fun DefaultHomeHint() {
 }
 
 fun isDefaultHome(context: Context): Boolean {
-    return try {
-        val default = Settings.Secure.getString(context.contentResolver, "launcher_default")
-        false
-    } catch (e: Exception) { false }
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val rm = context.getSystemService(RoleManager::class.java)
+        rm.isRoleAvailable(RoleManager.ROLE_HOME) && rm.isRoleHeld(RoleManager.ROLE_HOME)
+    } else {
+        val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+        val res = context.packageManager.resolveActivity(homeIntent, 0)
+        res?.activityInfo?.packageName == context.packageName
+    }
 }
 
 fun requestHomeRole(context: Context) {
