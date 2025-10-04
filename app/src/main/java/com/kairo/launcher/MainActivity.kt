@@ -67,7 +67,10 @@ fun KairoApp(vm: LauncherViewModel) {
                             0 -> { /* focus search (future) */ }
                             1 -> { /* app grid is the main view */ }
                             2 -> openRecents(ctx) // placeholder
-                            3 -> openSettings(ctx) // opens system Settings for now
+                            3 -> ctx.startActivity(
+                                Intent(ctx, SettingsActivity::class.java)
+                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            )                          
                         }
                     }
                 }
