@@ -12,6 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.kairo.launcher.ui.theme.KairoTheme
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.graphics.Color
 
 class SettingsActivity : ComponentActivity() {
     private val vm: LauncherViewModel by viewModels()
@@ -48,6 +51,14 @@ class SettingsActivity : ComponentActivity() {
                     Button(onClick = { vm.setAccent(this@SettingsActivity, hex.text) }) {
                         Text("Save Accent")
                     }
+                    Spacer(Modifier.height(12.dp))
+                    val preview = runCatching { androidx.compose.ui.graphics.Color(android.graphics.Color.parseColor(hex.text)) }
+                        .getOrElse { MaterialTheme.colorScheme.primary }
+                    Box(
+                        Modifier
+                            .size(36.dp)
+                            .background(preview, shape = MaterialTheme.shapes.small)
+                    )
                 }
             }
         }
