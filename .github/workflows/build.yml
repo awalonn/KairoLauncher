@@ -18,24 +18,22 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      # Android SDK / commandline tools
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install SDK components
+      - name: Install SDK components (API 34)
         run: |
           yes | sdkmanager --licenses
-          sdkmanager "platform-tools" "platforms;android-31" "build-tools;31.0.0"
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
-      # Use Gradle without cache (avoids cache service outages)
-      - name: Setup Gradle (cache disabled)
+      - name: Setup Gradle (pin 8.7, no cache)
         uses: gradle/actions/setup-gradle@v3
         with:
+          gradle-version: 8.7
           cache-disabled: true
 
       - name: Build Release APK
-        run: |
-          gradle --no-daemon --stacktrace assembleRelease
+        run: gradle --no-daemon --stacktrace --warning-mode all assembleRelease
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
