@@ -34,8 +34,14 @@ jobs:
 
       - name: Build APKs
         run: |
-          gradle --no-daemon --stacktrace assembleRelease assembleDebug
-          echo "== OUTPUTS ==" && ls -R app/build/outputs || true
+          set -o pipefail
+          gradle --no-daemon --stacktrace --warning-mode all assembleRelease 2>&1 | tee build_release.log
+
+      - name: Upload build log
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: build_release.log
 
       - name: Decode keystore
         run: echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
