@@ -31,6 +31,7 @@ fun AppGrid(apps: List<InstalledApp>, onOpen: (InstalledApp) -> Unit) {
                 FilledTonalButton(
                     onClick = { onOpen(app) },
                     modifier = Modifier.size(64.dp)
+                    onLongClick = { onLongPress(app) }
                 ) {
                     Image(bitmap = app.icon.toBitmap().asImageBitmap(), contentDescription = app.label)
                 }
