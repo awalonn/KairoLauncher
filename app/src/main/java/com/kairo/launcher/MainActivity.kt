@@ -20,6 +20,7 @@ import com.kairo.launcher.ui.components.AppGrid
 import com.kairo.launcher.ui.components.RadialDock
 import com.kairo.launcher.ui.components.SearchBar
 import com.kairo.launcher.ui.theme.KairoTheme
+import android.content.pm.PackageManager
 
 class MainActivity : ComponentActivity() {
     private val vm: LauncherViewModel by viewModels()
@@ -101,8 +102,12 @@ fun isDefaultHome(context: Context): Boolean {
         val rm = context.getSystemService(RoleManager::class.java)
         rm.isRoleAvailable(RoleManager.ROLE_HOME) && rm.isRoleHeld(RoleManager.ROLE_HOME)
     } else {
+        // Android 9 (API 28) and below: check the default HOME handler
         val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
-        val res = context.packageManager.resolveActivity(homeIntent, 0)
+        val res = context.packageManager.resolveActivity(
+            homeIntent,
+            PackageManager.MATCH_DEFAULT_ONLY
+        )
         res?.activityInfo?.packageName == context.packageName
     }
 }
