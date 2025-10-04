@@ -26,6 +26,8 @@ import com.kairo.launcher.ui.components.AppGrid
 import com.kairo.launcher.ui.components.RadialDock
 import com.kairo.launcher.ui.components.SearchBar
 import com.kairo.launcher.ui.theme.KairoTheme
+import androidx.compose.material3.AssistChip
+
 
 class MainActivity : ComponentActivity() {
     private val vm: LauncherViewModel by viewModels()
@@ -40,7 +42,8 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun KairoApp(vm: LauncherViewModel) {
-    KairoTheme {
+    val accent by vm.accentHex.collectAsState()
+    KairoTheme(accentHex = accent) {
         val ctx = LocalContext.current
         val query by vm.query.collectAsState()
         val grid by vm.gridSize.collectAsState()
@@ -130,15 +133,17 @@ fun FavoritesRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(apps) { app ->
-            FilledTonalButton(onClick = { onOpen(app) }) {
-                Image(
-                    bitmap = app.icon.toBitmap().asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(app.label, maxLines = 1)
-            }
+            AssistChip(
+                onClick = { onOpen(app) },
+                label = { Text(app.label, maxLines = 1) },
+                leadingIcon = {
+                    Image(
+                        bitmap = app.icon.toBitmap().asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            )
         }
     }
 }
