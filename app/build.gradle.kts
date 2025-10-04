@@ -5,14 +5,12 @@ plugins {
 
 android {
     namespace = "com.kairo.launcher"
--   compileSdk = 31
-+   compileSdk = 34
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.kairo.launcher"
         minSdk = 28
--       targetSdk = 31
-+       targetSdk = 34
+        targetSdk = 34
         versionCode = 1
         versionName = "0.1.0"
         vectorDrawables.useSupportLibrary = true
@@ -31,7 +29,6 @@ android {
 
     buildFeatures { compose = true }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
-
     packaging { resources.excludes += "/META-INF/{AL2.0,LGPL2.1}" }
 }
 
