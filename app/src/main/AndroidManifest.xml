@@ -18,6 +18,8 @@
         android:theme="@style/Theme.Kairo">
 
         <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
