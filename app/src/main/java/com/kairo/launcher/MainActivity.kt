@@ -1,3 +1,4 @@
+
 package com.kairo.launcher
 
 import android.app.role.RoleManager
@@ -9,23 +10,9 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -50,6 +37,7 @@ fun KairoApp(vm: LauncherViewModel) {
     KairoTheme {
         val ctx = LocalContext.current
         val query by vm.query.collectAsState()
+        val grid by vm.gridSize.collectAsState()
 
         Scaffold(
             topBar = {
@@ -81,9 +69,8 @@ fun KairoApp(vm: LauncherViewModel) {
             Box(Modifier.fillMaxSize().padding(paddings)) {
                 AppGrid(
                     apps = vm.filtered(),
-                    onOpen = { vm.launch(ctx, it) }
-                    gridMin = vm.gridSize.collectAsState().value,
-                    onLongPress = { vm.toggleFavorite(ctx, it.packageName) }
+                    gridMin = grid,
+                    onOpen = { app -> vm.launch(ctx, app) }
                 )
             }
         }
