@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Simple square “badge” (clean + safe in VectorDrawable) -->
+    <path
+        android:fillColor="#7C5CFF"
+        android:pathData="M24,24h60v60h-60z"/>
+    <!-- small inset to give a “frame” look -->
+    <path
+        android:fillColor="#FFFA"
+        android:pathData="M32,32h44v44h-44z"/>
+    <path
+        android:fillColor="#7C5CFF"
+        android:pathData="M40,40h28v28h-28z"/>
+</vector>
