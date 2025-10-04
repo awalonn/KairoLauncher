@@ -7,6 +7,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -17,14 +18,22 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      # Install Android commandline tools + accept licenses
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install SDK components
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-31" "build-tools;31.0.0"
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: 8.7
 
       - name: Build Release APK
-        run: |
-          gradle build
+        run: gradle assembleRelease
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
