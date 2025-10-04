@@ -1,3 +1,4 @@
+
 package com.kairo.launcher
 
 import android.os.Bundle
@@ -29,12 +30,6 @@ class SettingsActivity : ComponentActivity() {
                     Spacer(Modifier.height(16.dp))
 
                     Text("Grid size (cell min dp): $grid")
-                    Slider(
-                        value = grid.toFloat(),
-                        onValueChange = { /* preview optional */ },
-                        valueRange = 64f..120f,
-                        steps = 56
-                    )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         listOf(72, 84, 100, 112).forEach { s ->
                             Button(onClick = { vm.setGridSize(this@SettingsActivity, s) }) {
