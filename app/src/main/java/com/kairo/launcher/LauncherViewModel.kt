@@ -1,3 +1,4 @@
+
 package com.kairo.launcher
 
 import android.content.ComponentName
@@ -18,18 +19,16 @@ import androidx.datastore.preferences.core.edit
 
 class LauncherViewModel : ViewModel() {
 
-    // Apps + search
     private val _apps = MutableStateFlow<List<InstalledApp>>(emptyList())
     val apps: StateFlow<List<InstalledApp>> = _apps
 
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query
 
-    // Settings / favorites (backed by DataStore)
     private val _favorites = MutableStateFlow<Set<String>>(emptySet())
     val favorites: StateFlow<Set<String>> = _favorites
 
-    private val _gridSize = MutableStateFlow(84) // dp
+    private val _gridSize = MutableStateFlow(84)
     val gridSize: StateFlow<Int> = _gridSize
 
     private val _accentHex = MutableStateFlow("#7C5CFF")
@@ -58,21 +57,17 @@ class LauncherViewModel : ViewModel() {
         context.startActivity(intent)
     }
 
-    /** Start observing DataStore-backed preferences. Call once (e.g., from Activity.onCreate). */
     fun observePrefs(ctx: Context) {
-        // Favorites
         viewModelScope.launch(Dispatchers.IO) {
             ctx.dataStore.data.collectLatest { prefs ->
                 _favorites.value = prefs[Prefs.FAVORITES] ?: emptySet()
             }
         }
-        // Grid size
         viewModelScope.launch(Dispatchers.IO) {
             ctx.dataStore.data.collectLatest { prefs ->
                 _gridSize.value = prefs[Prefs.GRID_SIZE] ?: 84
             }
         }
-        // Accent
         viewModelScope.launch(Dispatchers.IO) {
             ctx.dataStore.data.collectLatest { prefs ->
                 _accentHex.value = prefs[Prefs.ACCENT_HEX] ?: "#7C5CFF"
