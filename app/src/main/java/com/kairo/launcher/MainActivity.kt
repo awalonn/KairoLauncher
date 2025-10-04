@@ -1,26 +1,31 @@
-
 package com.kairo.launcher
 
 import android.app.role.RoleManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import com.kairo.launcher.model.InstalledApp
 import com.kairo.launcher.ui.components.AppGrid
 import com.kairo.launcher.ui.components.RadialDock
 import com.kairo.launcher.ui.components.SearchBar
 import com.kairo.launcher.ui.theme.KairoTheme
-import android.content.pm.PackageManager
 
 class MainActivity : ComponentActivity() {
     private val vm: LauncherViewModel by viewModels()
@@ -67,12 +72,30 @@ fun KairoApp(vm: LauncherViewModel) {
                 }
             }
         ) { paddings ->
-            Box(Modifier.fillMaxSize().padding(paddings)) {
-                AppGrid(
-                    apps = vm.filtered(),
-                    gridMin = grid,
+            val all by vm.apps.collectAsState()
+            val favs by vm.favorites.collectAsState()
+            val favApps = remember(all, favs) { all.filter { it.packageName in favs } }
+
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddings)
+            ) {
+                // Favorites row (shows only if you pinned apps)
+                FavoritesRow(
+                    apps = favApps,
                     onOpen = { app -> vm.launch(ctx, app) }
                 )
+
+                // App grid (long-press toggles favorite)
+                Box(Modifier.weight(1f)) {
+                    AppGrid(
+                        apps = vm.filtered(),
+                        gridMin = grid,
+                        onOpen = { app -> vm.launch(ctx, app) },
+                        onLongPress = { app -> vm.toggleFavorite(ctx, app.packageName) }
+                    )
+                }
             }
         }
     }
@@ -96,13 +119,36 @@ fun DefaultHomeHint() {
     }
 }
 
+@Composable
+fun FavoritesRow(
+    apps: List<InstalledApp>,
+    onOpen: (InstalledApp) -> Unit
+) {
+    if (apps.isEmpty()) return
+    LazyRow(
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(apps) { app ->
+            FilledTonalButton(onClick = { onOpen(app) }) {
+                Image(
+                    bitmap = app.icon.toBitmap().asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(app.label, maxLines = 1)
+            }
+        }
+    }
+}
+
 /** Accurate default-home check for Android 9–12. */
 fun isDefaultHome(context: Context): Boolean {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         val rm = context.getSystemService(RoleManager::class.java)
         rm.isRoleAvailable(RoleManager.ROLE_HOME) && rm.isRoleHeld(RoleManager.ROLE_HOME)
     } else {
-        // Android 9 (API 28) and below: check the default HOME handler
         val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
         val res = context.packageManager.resolveActivity(
             homeIntent,
